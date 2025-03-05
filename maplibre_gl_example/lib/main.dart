@@ -14,6 +14,7 @@ import 'package:maplibre_gl_example/get_map_informations.dart';
 import 'package:maplibre_gl_example/given_bounds.dart';
 import 'package:maplibre_gl_example/localized_map.dart';
 import 'package:maplibre_gl_example/no_location_permission_page.dart';
+import 'package:maplibre_gl_example/offline_mbtiles_page.dart';
 
 import 'animate_camera.dart';
 import 'annotation_order_maps.dart';
@@ -59,6 +60,7 @@ final List<ExamplePage> _allPages = <ExamplePage>[
   const GetMapInfoPage(),
   const NoLocationPermissionPage(),
   const AttributionPage(),
+  const OfflineMbTilesPage(),
 ];
 
 class MapsDemo extends StatefulWidget {

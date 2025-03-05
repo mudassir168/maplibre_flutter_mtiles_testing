@@ -36,3 +36,4 @@ flutter:
     - assets/osm_style.json
     - assets/sydney0.png
     - assets/sydney1.png
+    - assets/synthetic.mbtiles
