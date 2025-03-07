@@ -15,6 +15,8 @@ import 'package:maplibre_gl_example/given_bounds.dart';
 import 'package:maplibre_gl_example/localized_map.dart';
 import 'package:maplibre_gl_example/no_location_permission_page.dart';
 import 'package:maplibre_gl_example/offline_mbtiles_page.dart';
+import 'package:permission_handler/permission_handler.dart' as perm;
+
 
 import 'animate_camera.dart';
 import 'annotation_order_maps.dart';
@@ -125,6 +127,23 @@ class _MapsDemoState extends State<MapsDemo> {
   }
 }
 
-void main() {
+Future<void> requestStoragePermission() async {
+  var status = await perm.Permission.storage.status;
+
+  if (status.isDenied || status.isPermanentlyDenied) {
+    // ✅ Show permission request dialog if denied
+    bool granted = await perm.Permission.manageExternalStorage.request().isGranted;
+  }
+
+  if (status.isGranted) {
+    print("✅ Storage permission granted");
+  } else {
+    print("❌ Storage permission denied");
+  }
+}
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await requestStoragePermission();
   runApp(const MaterialApp(home: MapsDemo()));
 }

@@ -1,5 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'page.dart';
 
@@ -65,45 +70,82 @@ class _OfflineMBTilesPageState extends State<OfflineMBTilesBody> {
     return MapLibreMap(
       key: UniqueKey(),
       initialCameraPosition: const CameraPosition(
-        target: LatLng(46.947456, 7.451123),
+        target: LatLng(25.7617,80.1918),
         zoom: 10.0,
       ),
-      styleString: "assets/osm_style.json", // Load from assets
+      styleString:
+      "https://tiles.basemaps.cartocdn.com/gl/positron-gl-style/style.json",
       onMapCreated: (controller) {
-        print("Map Created Successfully");
-        _onMapCreated(controller);
+        mapController = controller;
+      },
+      onStyleLoadedCallback: () async {
+        // Load the downloaded MBTiles into the map
+        String path = await getDocumentsPath();
+        loadMbtiles(path + "/synthetic.mbtiles");
       },
     );
   }
 
+  /// Method to load MbtilesFile using the path
+  void loadMbtiles(String mbtilesFilePath) async {
+    if (mbtilesFilePath.isEmpty) return;
 
+    const sourceId = 'mbtiles';
+    const layerId = 'mbtiles-layer';
 
-  void _onMapCreated(MapLibreMapController controller) async {
-    mapController = controller;
-    // 1. Add MBTiles Raster Source
     try {
-      await controller.addSource(
-        "offline-tiles",
+      // Remove existing source and layer
+      await mapController.removeLayer(layerId);
+      await mapController.removeSource(sourceId);
+
+      // Add new source with MBTiles and layer
+      await mapController.addSource(
+        sourceId,
         RasterSourceProperties(
-          tiles: ["assets/synthetic.mbtiles"], // Load MBTiles from assets
-          tileSize: 256,
+          url: 'mbtiles://$mbtilesFilePath', // important step
+          attribution: 'Map data &copy; OpenStreetMap contributors',
         ),
       );
-      print("✅ MBTiles source added successfully");
-    } catch (e) {
-      print(" Error adding MBTiles source: $e");
-    }
 
-    // 2. Add Raster Layer
-    try {
-      await controller.addLayer(
-        "offline-tiles", // Source ID
-        "offline-tiles-layer", // Layer ID
+      await mapController.addLayer(
+        sourceId,
+        layerId,
         RasterLayerProperties(),
       );
-      print("✅ MBTiles layer added successfully");
     } catch (e) {
-      print("Error adding MBTiles layer: $e");
+      print('Error loading MBTiles: $e');
     }
   }
+
+
+  // void _addMbtiles() async {
+  //   String filePath = "/sdcard/synthetic.mbtiles";
+  //   String mapLibrePath = "mbtiles://$filePath";
+  //   // function call here
+  //   await loadMbtiles(mapLibrePath);
+  // }
+  //
+
+
+
+  // void _addMbtiles() async {
+  //   String filePath = "/sdcard/synthetic.mbtiles";
+  //   String mapLibrePath = "mbtiles://$filePath";
+  //   await mapController.addSource(
+  //       "mbtiles",
+  //       RasterSourceProperties(
+  //           tiles: [mapLibrePath], tileSize: 256, attribution: '[...]'));
+  //
+  //   await mapController.addLayer(
+  //       "mbtiles", "mbtiles-layer", const RasterLayerProperties());
+  // }
+
+
+
+  Future<String> getDocumentsPath() async {
+    final directory = await getApplicationDocumentsDirectory();
+    return directory.path;
+  }
 }
+
+
